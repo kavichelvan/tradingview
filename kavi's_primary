@@ -1,0 +1,58 @@
+//@version=5
+//** SR **//
+indicator(title=' Kavi\'s primary', shorttitle=' Kavi\'s primary', overlay=true, max_bars_back=1000)
+//
+toggleBreaks = input(true, title='Show Breaks')
+leftBars = input(15, title='Left Bars ')
+rightBars = input(15, title='Right Bars')
+volumeThresh = input(20, title='Volume Threshold')
+//
+highUsePivot = fixnan(ta.pivothigh(leftBars, rightBars)[1])
+lowUsePivot = fixnan(ta.pivotlow(leftBars, rightBars)[1])
+r1 = plot(highUsePivot, color=ta.change(highUsePivot) ? na : #FF0000, linewidth=3, offset=-(rightBars + 1), title='Resistance')
+s1 = plot(lowUsePivot, color=ta.change(lowUsePivot) ? na : #233dee, linewidth=3, offset=-(rightBars + 1), title='Support')
+
+//Volume %
+short = ta.ema(volume, 5)
+long = ta.ema(volume, 10)
+osc = 100 * (short - long) / long
+
+
+//For breaks with volume
+plotshape(toggleBreaks and ta.crossunder(close, lowUsePivot) and not(open - close < high - open) and osc > volumeThresh, title='Break', text='B', style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.new(color.white, 0), size=size.tiny)
+plotshape(toggleBreaks and ta.crossover(close, highUsePivot) and not(open - low > close - open) and osc > volumeThresh, title='Break', text='B', style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.new(color.white, 0), size=size.tiny)
+
+//For bull / bear wicks
+plotshape(toggleBreaks and ta.crossover(close, highUsePivot) and open - low > close - open, title='Break', text='Bull Wick', style=shape.labelup, location=location.belowbar, color=color.new(color.green, 0), textcolor=color.new(color.white, 0), size=size.tiny)
+plotshape(toggleBreaks and ta.crossunder(close, lowUsePivot) and open - close < high - open, title='Break', text='Bear Wick', style=shape.labeldown, location=location.abovebar, color=color.new(color.red, 0), textcolor=color.new(color.white, 0), size=size.tiny)
+
+
+alertcondition(ta.crossunder(close, lowUsePivot) and osc > volumeThresh, title='Support Broken', message='Support Broken')
+alertcondition(ta.crossover(close, highUsePivot) and osc > volumeThresh, title='Resistance Broken', message='Resistance Broken')
+
+//** SMAs **//
+// SMMA Config and declaration
+smma_10 = input.int(10, minval=1, title='SMMA 10')
+smma_21 = input.int(21, minval=1, title='SMMA 21')
+smma_50 = input.int(50, minval=1, title='SMMA 50')
+smma_100 = input.int(100, minval=1, title='SMMA 100')
+smma_200 = input.int(200, minval=1, title='SMMA 200')
+src = input(close, title='Source')
+
+// SMMA calculating and drowing
+smma10 = 0.0
+smma21 = 0.0
+smma50 = 0.0
+smma100 = 0.0
+smma200 = 0.0
+
+smma10 := na(smma10[1]) ? ta.sma(src, smma_10) : (smma10[1] * (smma_10 - 1) + src) / smma_10
+smma21 := na(smma21[1]) ? ta.sma(src, smma_21) : (smma21[1] * (smma_21 - 1) + src) / smma_21
+smma50 := na(smma50[1]) ? ta.sma(src, smma_50) : (smma50[1] * (smma_50 - 1) + src) / smma_50
+smma100 := na(smma100[1]) ? ta.sma(src, smma_100) : (smma100[1] * (smma_100 - 1) + src) / smma_100
+smma200 := na(smma200[1]) ? ta.sma(src, smma_200) : (smma200[1] * (smma_200 - 1) + src) / smma_200
+plot(smma10, color=color.new(#f44336, 0), title='SMMA 10', linewidth=2)
+plot(smma21, color=color.new(#ff9800, 0), title='SMMA 21', linewidth=2)
+plot(smma50, color=color.new(#ffeb3b, 0), title='SMMA 50', linewidth=2)
+plot(smma100, color=color.new(#4caf50, 0), title='SMMA 100', linewidth=2)
+plot(smma200, color=color.new(#00bcd4, 0), title='SMMA 200', linewidth=2)
